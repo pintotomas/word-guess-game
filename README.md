@@ -83,6 +83,26 @@ The response contains the updated game state.
 {"id":"f8302916-69f1-462b-b640-e503faa94397","current":"______A_","guesses_remaining":6}
 ```
 
+## Live Demo
+
+The app is deployed on [Render](https://render.com) and available at:
+
+**https://word-guess-game-3ofz.onrender.com**
+
+Start a new game:
+
+```sh
+curl -X POST https://word-guess-game-3ofz.onrender.com/new
+```
+
+Make a guess:
+
+```sh
+curl -X POST https://word-guess-game-3ofz.onrender.com/guess -d '{"id":"<game_id>","guess":"A"}'
+```
+
+> Note: The free tier on Render spins down after inactivity. The first request may take ~30 seconds while the service wakes up.
+
 ## Running locally
 
 ### With Go
@@ -119,3 +139,26 @@ curl -X POST http://localhost:1337/guess -d '{"id":"<game_id>","guess":"A"}'
 ```sh
 go test -race ./...
 ```
+
+## Future Improvements
+
+### CI/CD
+
+- Add a **GitHub Actions** workflow to run `go test -race ./...` and `go vet ./...` on every push and pull request
+- Set up automatic deployment to Render on merge to `main` via Render's deploy hooks or GitHub integration
+- Add a staging environment on Render to test changes before promoting to production
+
+### Code Improvements
+
+- Read the listen port from an environment variable (`PORT`) with a fallback to `1337`, making the app more portable across hosting platforms
+- Add persistent storage (e.g. Redis or SQLite) so games survive restarts — currently all games are lost when the server restarts
+- Add request logging middleware for observability
+- Add rate limiting to prevent abuse on the public endpoint
+- Add a `/health` endpoint for uptime monitoring and Render health checks
+
+### Features ideas
+
+- Add a hint system that reveals a random letter at the cost of extra guesses
+- Add difficulty levels (fewer guesses, longer words)
+- Add a simple web UI frontend so the game can be played in a browser
+- Track game statistics (win/loss ratio, average guesses per game)
