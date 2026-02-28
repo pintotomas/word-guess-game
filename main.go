@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -30,7 +29,7 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/games", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/new", func(w http.ResponseWriter, r *http.Request) {
 		word := words[rand.Intn(len(words))]
 
 		g, err := game.New(word, maxGuesses)
@@ -49,33 +48,50 @@ func main() {
 
 		current, guessesRemaining := g.Status()
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"id":                id,
-			"current":           current,
-			"guesses_remaining": guessesRemaining,
+		json.NewEncoder(w).Encode(gameResponse{
+			ID:               id,
+			Current:          current,
+			GuessesRemaining: guessesRemaining,
 		})
 	}).Methods(http.MethodPost)
 
-	r.HandleFunc("/games/{id}", func(w http.ResponseWriter, r *http.Request) {
-		id := mux.Vars(r)["id"]
-		g, err := s.Get(id)
+	r.HandleFunc("/guess", func(w http.ResponseWriter, r *http.Request) {
+		var req guessRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		if len(req.Guess) != 1 {
+			http.Error(w, "guess must be a single character", http.StatusBadRequest)
+			return
+		}
+
+		g, err := s.Get(req.ID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
 
-		current, guessesRemaining := g.Status()
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"id":                id,
-			"current":           current,
-			"guesses_remaining": guessesRemaining,
-		})
-	}).Methods(http.MethodGet)
+		ch := rune(req.Guess[0])
+		if err := g.Guess(ch); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 
-	r.HandleFunc("/games/{id}/guess", func(w http.ResponseWriter, r *http.Request) {
-		id := mux.Vars(r)["id"]
-		fmt.Fprintf(w, "guess for game: %s\n", id)
+		current, guessesRemaining := g.Status()
+
+		// Clean up finished games
+		if g.Won() || guessesRemaining == 0 {
+			s.Delete(req.ID)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(gameResponse{
+			ID:               req.ID,
+			Current:          current,
+			GuessesRemaining: guessesRemaining,
+		})
 	}).Methods(http.MethodPost)
 
 	log.Printf("Starting server on http://%s", serverAddress)
