@@ -13,6 +13,18 @@ func TestNewGame(t *testing.T) {
 	}
 }
 
+func TestStatusNewGame(t *testing.T) {
+	g := New("APPLE", 6)
+
+	current, remaining := g.Status()
+	if current != "_____" {
+		t.Errorf("expected current %q, got %q", "_____", current)
+	}
+	if remaining != 6 {
+		t.Errorf("expected remaining %d, got %d", 6, remaining)
+	}
+}
+
 func TestNewGameGuessedMap(t *testing.T) {
 	g := New("APPLE", 6)
 
