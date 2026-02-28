@@ -17,16 +17,7 @@ const (
 	maxGuesses    = 6
 )
 
-func main() {
-	rand.Seed(time.Now().UnixNano())
-
-	words, err := loadWords("words.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	s := store.New()
-
+func newRouter(words []string, s *store.Store) *mux.Router {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/new", func(w http.ResponseWriter, r *http.Request) {
@@ -93,6 +84,20 @@ func main() {
 			GuessesRemaining: guessesRemaining,
 		})
 	}).Methods(http.MethodPost)
+
+	return r
+}
+
+func main() {
+	rand.Seed(time.Now().UnixNano())
+
+	words, err := loadWords("words.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s := store.New()
+	r := newRouter(words, s)
 
 	log.Printf("Starting server on http://%s", serverAddress)
 	if err := http.ListenAndServe(serverAddress, r); err != nil {

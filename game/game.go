@@ -3,6 +3,7 @@ package game
 import (
 	"errors"
 	"strings"
+	"sync"
 	"unicode"
 )
 
@@ -19,6 +20,7 @@ var (
 )
 
 type Game struct {
+	mu               sync.RWMutex
 	word             string
 	guessesRemaining int
 	guessed          map[int]rune
@@ -55,6 +57,8 @@ func New(word string, maxGuesses int) (*Game, error) {
 
 // Status returns remaining guesses and the status of the guessed word as a string
 func (g *Game) Status() (string, int) {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
 	current := make([]rune, len(g.guessed))
 	for i := 0; i < len(g.guessed); i++ {
 		current[i] = g.guessed[i]
@@ -64,6 +68,12 @@ func (g *Game) Status() (string, int) {
 
 // Won checks if there are any remaining characters to be guessed
 func (g *Game) Won() bool {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	return g.won()
+}
+
+func (g *Game) won() bool {
 	for _, r := range g.guessed {
 		if r == '_' {
 			return false
@@ -74,7 +84,9 @@ func (g *Game) Won() bool {
 
 // Guess looks for "ch" in the word and updates the guessed word accordingly. If no matches, remaining attempts are decremented
 func (g *Game) Guess(ch rune) error {
-	if g.Won() {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.won() {
 		return ErrGameWon
 	}
 	if g.guessesRemaining == 0 {
