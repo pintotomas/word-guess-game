@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	serverAddress = "localhost:1337"
+	serverAddress = ":1337"
 	maxGuesses    = 6
 )
 

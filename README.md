@@ -82,3 +82,40 @@ The response contains the updated game state.
  curl -X POST https://wordgame.herokuapp.com/guess -d '{"id":"f8302916-69f1-462b-b640-e503faa94397","guess":"A"}'
 {"id":"f8302916-69f1-462b-b640-e503faa94397","current":"______A_","guesses_remaining":6}
 ```
+
+## Running locally
+
+### With Go
+
+```sh
+go run .
+```
+
+### With Docker
+
+Build and run:
+
+```sh
+docker build -t wordgame .
+docker run -p 1337:1337 wordgame
+```
+
+### Testing the API
+
+Start a new game:
+
+```sh
+curl -X POST http://localhost:1337/new
+```
+
+Make a guess:
+
+```sh
+curl -X POST http://localhost:1337/guess -d '{"id":"<game_id>","guess":"A"}'
+```
+
+### Running tests
+
+```sh
+go test -race ./...
+```
