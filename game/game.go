@@ -1,5 +1,9 @@
 package game
 
+import "errors"
+
+var ErrNoGuessesRemaining = errors.New("no guesses remaining")
+
 type Game struct {
 	word             string
 	guessesRemaining int
@@ -29,7 +33,11 @@ func (g *Game) Status() (string, int) {
 }
 
 // Guess looks for "ch" in the word and updates the guessed word accordingly. If no matches, remaining attempts are decremented
-func (g *Game) Guess(ch rune) {
+func (g *Game) Guess(ch rune) error {
+	if g.guessesRemaining == 0 {
+		return ErrNoGuessesRemaining
+	}
+
 	found := false
 	for i, r := range g.word {
 		if r == ch {
@@ -40,4 +48,5 @@ func (g *Game) Guess(ch rune) {
 	if !found {
 		g.guessesRemaining--
 	}
+	return nil
 }

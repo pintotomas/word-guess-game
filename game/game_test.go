@@ -1,6 +1,9 @@
 package game
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestNewGame(t *testing.T) {
 	g := New("APPLE", 6)
@@ -48,6 +51,16 @@ func TestGuessWrong(t *testing.T) {
 	}
 	if remaining != 5 {
 		t.Errorf("expected remaining %d, got %d", 5, remaining)
+	}
+}
+
+func TestGuessNoRemaining(t *testing.T) {
+	g := New("APPLE", 1)
+
+	_ = g.Guess('Z') // wrong, drops to 0
+	err := g.Guess('A')
+	if !errors.Is(err, ErrNoGuessesRemaining) {
+		t.Errorf("expected ErrNoGuessesRemaining, got %v", err)
 	}
 }
 
