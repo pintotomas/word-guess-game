@@ -14,6 +14,7 @@ type Game struct {
 	guessed          map[int]rune
 }
 
+// New creates a Game struct. It will lowercase the word as the game is case-insensitive
 func New(word string, maxGuesses int) *Game {
 	word = strings.ToLower(word)
 	guessed := make(map[int]rune, len(word))
