@@ -6,7 +6,10 @@ import (
 	"unicode"
 )
 
-var ErrNoGuessesRemaining = errors.New("no guesses remaining")
+var (
+	ErrNoGuessesRemaining = errors.New("no guesses remaining")
+	ErrGameWon            = errors.New("game already won")
+)
 
 type Game struct {
 	word             string
@@ -38,8 +41,21 @@ func (g *Game) Status() (string, int) {
 	return string(current), g.guessesRemaining
 }
 
+// Won checks if there are any remaining characters to be guessed
+func (g *Game) Won() bool {
+	for _, r := range g.guessed {
+		if r == '_' {
+			return false
+		}
+	}
+	return true
+}
+
 // Guess looks for "ch" in the word and updates the guessed word accordingly. If no matches, remaining attempts are decremented
 func (g *Game) Guess(ch rune) error {
+	if g.Won() {
+		return ErrGameWon
+	}
 	if g.guessesRemaining == 0 {
 		return ErrNoGuessesRemaining
 	}

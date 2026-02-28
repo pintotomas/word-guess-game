@@ -79,6 +79,46 @@ func TestGuessNoRemaining(t *testing.T) {
 	}
 }
 
+func TestWonNewGame(t *testing.T) {
+	g := New("APPLE", 6)
+	if g.Won() {
+		t.Error("expected Won() to be false for a new game")
+	}
+}
+
+func TestWonPartiallyGuessed(t *testing.T) {
+	g := New("APPLE", 6)
+	g.Guess('A')
+	g.Guess('P')
+	if g.Won() {
+		t.Error("expected Won() to be false when not all letters guessed")
+	}
+}
+
+func TestWonFullyGuessed(t *testing.T) {
+	g := New("APPLE", 6)
+	g.Guess('A')
+	g.Guess('P')
+	g.Guess('L')
+	g.Guess('E')
+	if !g.Won() {
+		t.Error("expected Won() to be true when all letters guessed")
+	}
+}
+
+func TestGuessAfterWon(t *testing.T) {
+	g := New("APPLE", 6)
+	g.Guess('A')
+	g.Guess('P')
+	g.Guess('L')
+	g.Guess('E')
+
+	err := g.Guess('Z')
+	if !errors.Is(err, ErrGameWon) {
+		t.Errorf("expected ErrGameWon, got %v", err)
+	}
+}
+
 func TestNewGameGuessedMap(t *testing.T) {
 	g := New("APPLE", 6)
 
