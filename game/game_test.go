@@ -12,3 +12,16 @@ func TestNewGame(t *testing.T) {
 		t.Errorf("expected guessesRemaining %d, got %d", 6, g.guessesRemaining)
 	}
 }
+
+func TestNewGameGuessedMap(t *testing.T) {
+	g := New("APPLE", 6)
+
+	if len(g.guessed) != 5 {
+		t.Fatalf("expected guessed map length 5, got %d", len(g.guessed))
+	}
+	for i := 0; i < 5; i++ {
+		if g.guessed[i] != '_' {
+			t.Errorf("expected '_' at position %d, got %c", i, g.guessed[i])
+		}
+	}
+}
