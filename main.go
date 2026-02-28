@@ -6,6 +6,8 @@ import (
 	"math/rand"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 const (
@@ -23,24 +25,23 @@ func main() {
 	// TODO use words in your implementation
 	_ = words
 
-	mux := http.NewServeMux()
+	r := mux.NewRouter()
 
-	mux.HandleFunc("POST /games", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/games", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "new game")
-	})
+	}).Methods(http.MethodPost)
 
-	mux.HandleFunc("GET /games/{id}", func(w http.ResponseWriter, r *http.Request) {
-		id := r.PathValue("id")
+	r.HandleFunc("/games/{id}", func(w http.ResponseWriter, r *http.Request) {
+		id := mux.Vars(r)["id"]
 		fmt.Fprintf(w, "game status: %s\n", id)
-	})
+	}).Methods(http.MethodGet)
 
-	mux.HandleFunc("POST /games/{id}/guess", func(w http.ResponseWriter, r *http.Request) {
-		id := r.PathValue("id")
+	r.HandleFunc("/games/{id}/guess", func(w http.ResponseWriter, r *http.Request) {
+		id := mux.Vars(r)["id"]
 		fmt.Fprintf(w, "guess for game: %s\n", id)
-	})
-
+	}).Methods(http.MethodPost)
 	log.Printf("Starting server on http://%s", serverAddress)
-	if err := http.ListenAndServe(serverAddress, mux); err != nil {
+	if err := http.ListenAndServe(serverAddress, r); err != nil {
 		log.Fatal(err)
 	}
 }
