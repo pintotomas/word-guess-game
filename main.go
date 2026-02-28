@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -22,8 +23,24 @@ func main() {
 	// TODO use words in your implementation
 	_ = words
 
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("POST /games", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "new game")
+	})
+
+	mux.HandleFunc("GET /games/{id}", func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		fmt.Fprintf(w, "game status: %s\n", id)
+	})
+
+	mux.HandleFunc("POST /games/{id}/guess", func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		fmt.Fprintf(w, "guess for game: %s\n", id)
+	})
+
 	log.Printf("Starting server on http://%s", serverAddress)
-	if err := http.ListenAndServe(serverAddress, nil); err != nil {
+	if err := http.ListenAndServe(serverAddress, mux); err != nil {
 		log.Fatal(err)
 	}
 }
