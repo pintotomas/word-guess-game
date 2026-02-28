@@ -9,6 +9,8 @@ import (
 var (
 	ErrNoGuessesRemaining = errors.New("no guesses remaining")
 	ErrGameWon            = errors.New("game already won")
+	ErrInvalidMaxGuesses  = errors.New("maxGuesses must be greater than 0")
+	ErrInvalidWord        = errors.New("word must contain only English letters (a-z)")
 )
 
 type Game struct {
@@ -18,8 +20,18 @@ type Game struct {
 }
 
 // New creates a Game struct. It will lowercase the word as the game is case-insensitive
-func New(word string, maxGuesses int) *Game {
+// Only English letters (a-z) are supported
+func New(word string, maxGuesses int) (*Game, error) {
+	if maxGuesses <= 0 {
+		return nil, ErrInvalidMaxGuesses
+	}
+
 	word = strings.ToLower(word)
+	for _, r := range word {
+		if r < 'a' || r > 'z' {
+			return nil, ErrInvalidWord
+		}
+	}
 	guessed := make(map[int]rune, len(word))
 	for i := range word {
 		guessed[i] = '_'
@@ -29,7 +41,7 @@ func New(word string, maxGuesses int) *Game {
 		word:             word,
 		guessesRemaining: maxGuesses,
 		guessed:          guessed,
-	}
+	}, nil
 }
 
 // Status returns remaining guesses and the status of the guessed word as a string

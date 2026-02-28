@@ -5,8 +5,17 @@ import (
 	"testing"
 )
 
+func newTestGame(t *testing.T, word string, maxGuesses int) *Game {
+	t.Helper()
+	g, err := New(word, maxGuesses)
+	if err != nil {
+		t.Fatalf("unexpected error creating game: %v", err)
+	}
+	return g
+}
+
 func TestNewGame(t *testing.T) {
-	g := New("APPLE", 6)
+	g := newTestGame(t, "APPLE", 6)
 
 	if g.word != "apple" {
 		t.Errorf("expected word %q, got %q", "apple", g.word)
@@ -16,8 +25,37 @@ func TestNewGame(t *testing.T) {
 	}
 }
 
+func TestNewGameInvalidMaxGuesses(t *testing.T) {
+	_, err := New("APPLE", 0)
+	if !errors.Is(err, ErrInvalidMaxGuesses) {
+		t.Errorf("expected ErrInvalidMaxGuesses, got %v", err)
+	}
+
+	_, err = New("APPLE", -1)
+	if !errors.Is(err, ErrInvalidMaxGuesses) {
+		t.Errorf("expected ErrInvalidMaxGuesses for negative value, got %v", err)
+	}
+}
+
+func TestNewGameInvalidWord(t *testing.T) {
+	_, err := New("APP123", 6)
+	if !errors.Is(err, ErrInvalidWord) {
+		t.Errorf("expected ErrInvalidWord for digits, got %v", err)
+	}
+
+	_, err = New("APP LE", 6)
+	if !errors.Is(err, ErrInvalidWord) {
+		t.Errorf("expected ErrInvalidWord for spaces, got %v", err)
+	}
+
+	_, err = New("APP-LE", 6)
+	if !errors.Is(err, ErrInvalidWord) {
+		t.Errorf("expected ErrInvalidWord for hyphens, got %v", err)
+	}
+}
+
 func TestStatusNewGame(t *testing.T) {
-	g := New("APPLE", 6)
+	g := newTestGame(t, "APPLE", 6)
 
 	current, remaining := g.Status()
 	if current != "_____" {
@@ -29,7 +67,7 @@ func TestStatusNewGame(t *testing.T) {
 }
 
 func TestGuessCorrect(t *testing.T) {
-	g := New("APPLE", 6)
+	g := newTestGame(t, "APPLE", 6)
 
 	g.Guess('P')
 	current, remaining := g.Status()
@@ -42,7 +80,7 @@ func TestGuessCorrect(t *testing.T) {
 }
 
 func TestGuessWrong(t *testing.T) {
-	g := New("APPLE", 6)
+	g := newTestGame(t, "APPLE", 6)
 
 	g.Guess('Z')
 	current, remaining := g.Status()
@@ -55,12 +93,12 @@ func TestGuessWrong(t *testing.T) {
 }
 
 func TestGuessCaseInsensitive(t *testing.T) {
-	g := New("APPLE", 6)
+	g := newTestGame(t, "APPLE", 6)
 
 	g.Guess('p') // lowercase
 	current1, _ := g.Status()
 
-	g2 := New("APPLE", 6)
+	g2 := newTestGame(t, "APPLE", 6)
 	g2.Guess('P') // uppercase
 	current2, _ := g2.Status()
 
@@ -70,7 +108,7 @@ func TestGuessCaseInsensitive(t *testing.T) {
 }
 
 func TestGuessNoRemaining(t *testing.T) {
-	g := New("APPLE", 1)
+	g := newTestGame(t, "APPLE", 1)
 
 	_ = g.Guess('Z') // wrong, drops to 0
 	err := g.Guess('A')
@@ -80,14 +118,14 @@ func TestGuessNoRemaining(t *testing.T) {
 }
 
 func TestWonNewGame(t *testing.T) {
-	g := New("APPLE", 6)
+	g := newTestGame(t, "APPLE", 6)
 	if g.Won() {
 		t.Error("expected Won() to be false for a new game")
 	}
 }
 
 func TestWonPartiallyGuessed(t *testing.T) {
-	g := New("APPLE", 6)
+	g := newTestGame(t, "APPLE", 6)
 	g.Guess('A')
 	g.Guess('P')
 	if g.Won() {
@@ -96,7 +134,7 @@ func TestWonPartiallyGuessed(t *testing.T) {
 }
 
 func TestWonFullyGuessed(t *testing.T) {
-	g := New("APPLE", 6)
+	g := newTestGame(t, "APPLE", 6)
 	g.Guess('A')
 	g.Guess('P')
 	g.Guess('L')
@@ -107,7 +145,7 @@ func TestWonFullyGuessed(t *testing.T) {
 }
 
 func TestGuessAfterWon(t *testing.T) {
-	g := New("APPLE", 6)
+	g := newTestGame(t, "APPLE", 6)
 	g.Guess('A')
 	g.Guess('P')
 	g.Guess('L')
@@ -120,7 +158,7 @@ func TestGuessAfterWon(t *testing.T) {
 }
 
 func TestNewGameGuessedMap(t *testing.T) {
-	g := New("APPLE", 6)
+	g := newTestGame(t, "APPLE", 6)
 
 	if len(g.guessed) != 5 {
 		t.Fatalf("expected guessed map length 5, got %d", len(g.guessed))
