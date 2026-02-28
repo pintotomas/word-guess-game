@@ -6,11 +6,16 @@ import (
 	"unicode"
 )
 
+// maxWordLength is a safe upper bound for word length. The longest English dictionary word is 45 characters,
+// so 100 is more than enough.
+const maxWordLength = 100
+
 var (
 	ErrNoGuessesRemaining = errors.New("no guesses remaining")
 	ErrGameWon            = errors.New("game already won")
 	ErrInvalidMaxGuesses  = errors.New("maxGuesses must be greater than 0")
 	ErrInvalidWord        = errors.New("word must contain only English letters (a-z)")
+	ErrWordTooLong        = errors.New("word must be at most 100 characters")
 )
 
 type Game struct {
@@ -24,6 +29,10 @@ type Game struct {
 func New(word string, maxGuesses int) (*Game, error) {
 	if maxGuesses <= 0 {
 		return nil, ErrInvalidMaxGuesses
+	}
+
+	if len(word) > maxWordLength {
+		return nil, ErrWordTooLong
 	}
 
 	word = strings.ToLower(word)

@@ -2,6 +2,7 @@ package game
 
 import (
 	"errors"
+	"strings"
 	"testing"
 )
 
@@ -34,6 +35,21 @@ func TestNewGameInvalidMaxGuesses(t *testing.T) {
 	_, err = New("APPLE", -1)
 	if !errors.Is(err, ErrInvalidMaxGuesses) {
 		t.Errorf("expected ErrInvalidMaxGuesses for negative value, got %v", err)
+	}
+}
+
+func TestNewGameWordTooLong(t *testing.T) {
+	word := strings.Repeat("a", 101)
+	_, err := New(word, 6)
+	if !errors.Is(err, ErrWordTooLong) {
+		t.Errorf("expected ErrWordTooLong, got %v", err)
+	}
+
+	// 100 characters should be fine
+	word = strings.Repeat("a", 100)
+	_, err = New(word, 6)
+	if err != nil {
+		t.Errorf("expected no error for 100-char word, got %v", err)
 	}
 }
 
