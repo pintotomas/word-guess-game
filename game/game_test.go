@@ -8,8 +8,8 @@ import (
 func TestNewGame(t *testing.T) {
 	g := New("APPLE", 6)
 
-	if g.word != "APPLE" {
-		t.Errorf("expected word %q, got %q", "APPLE", g.word)
+	if g.word != "apple" {
+		t.Errorf("expected word %q, got %q", "apple", g.word)
 	}
 	if g.guessesRemaining != 6 {
 		t.Errorf("expected guessesRemaining %d, got %d", 6, g.guessesRemaining)
@@ -33,8 +33,8 @@ func TestGuessCorrect(t *testing.T) {
 
 	g.Guess('P')
 	current, remaining := g.Status()
-	if current != "_PP__" {
-		t.Errorf("expected current %q, got %q", "_PP__", current)
+	if current != "_pp__" {
+		t.Errorf("expected current %q, got %q", "_pp__", current)
 	}
 	if remaining != 6 {
 		t.Errorf("expected remaining %d, got %d", 6, remaining)
@@ -51,6 +51,21 @@ func TestGuessWrong(t *testing.T) {
 	}
 	if remaining != 5 {
 		t.Errorf("expected remaining %d, got %d", 5, remaining)
+	}
+}
+
+func TestGuessCaseInsensitive(t *testing.T) {
+	g := New("APPLE", 6)
+
+	g.Guess('p') // lowercase
+	current1, _ := g.Status()
+
+	g2 := New("APPLE", 6)
+	g2.Guess('P') // uppercase
+	current2, _ := g2.Status()
+
+	if current1 != current2 {
+		t.Errorf("expected same result for 'p' and 'P', got %q and %q", current1, current2)
 	}
 }
 

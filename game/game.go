@@ -1,6 +1,10 @@
 package game
 
-import "errors"
+import (
+	"errors"
+	"strings"
+	"unicode"
+)
 
 var ErrNoGuessesRemaining = errors.New("no guesses remaining")
 
@@ -11,6 +15,7 @@ type Game struct {
 }
 
 func New(word string, maxGuesses int) *Game {
+	word = strings.ToLower(word)
 	guessed := make(map[int]rune, len(word))
 	for i := range word {
 		guessed[i] = '_'
@@ -38,6 +43,7 @@ func (g *Game) Guess(ch rune) error {
 		return ErrNoGuessesRemaining
 	}
 
+	ch = unicode.ToLower(ch)
 	found := false
 	for i, r := range g.word {
 		if r == ch {
